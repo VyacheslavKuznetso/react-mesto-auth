@@ -7,6 +7,6 @@
 * Настройка работы __route__
 * Работа с токенами
 
-Проект [Место]() на **Git pages**
+Проект [Место](https://VyacheslavKuznetso.github.io/react-mesto-auth/) на **Git pages**
 
 **Веб разработчик. Яндекс Практикум**
