@@ -1,14 +1,13 @@
 import React from 'react';
 import { Navigate } from "react-router-dom";
-import {AppContext} from '../contexts/CurrentUserContext'
+import {LoggedInContext} from '../contexts/CurrentUserContext'
 
 const ProtectedRouteElement = ({ element: Component, ...props }) => {
 
-  const appContext = React.useContext(AppContext);
+  const loggedIn = React.useContext(LoggedInContext);
 
-  
   return (
-    appContext.loggedIn ? <Component {...props} /> : <Navigate to="/sign-in" replace />
+    loggedIn ? <Component {...props} /> : <Navigate to="/sign-in" replace />
   )
 
 }

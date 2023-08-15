@@ -1,9 +1,7 @@
 import React from 'react';
-import { Route, Routes, Navigate, useNavigate } from 'react-router-dom';
-import { CurrentUserContext, AppContext } from '../contexts/CurrentUserContext'
-import Header from './Header';
+import { BrowserRouter, Route, Routes, Navigate, useNavigate } from 'react-router-dom';
+import { CurrentUserContext, AppContext, LoggedInContext } from '../contexts/CurrentUserContext';
 import Main from './Main';
-import Footer from './Footer';
 import PopupWithForm from './PopupWithForm'
 import ImagePopup from './ImagePopup'
 import api from '../utils/api'
@@ -12,7 +10,9 @@ import EditAvatarPopup from './EditAvatarPopup'
 import AddPlacePopup from './AddPlacePopup'
 import Login from './Login'
 import Register from './Register'
-import ProtectedRouteElement from "./ProtectedRoute";
+import InfoTooltip from './InfoTooltip'
+import ProtectedRouteElement from './ProtectedRoute'
+import * as auth from '../utils/auth';
 
 
 
@@ -23,13 +23,14 @@ function App() {
     const [isEditAvatarPopupOpen, setEditAvatarPopupOpen] = React.useState(false);
     const [selectedCard, setSelectedCard] = React.useState(null);
 
-
-    const [currentUser, setCurrentUser] = React.useState(null) // <-- 
-
+    const [isInfoTooltipOpen, setInfoTooltipOpen] = React.useState(false);
+    const [regInfo, setRegInfo] = React.useState({ success: false });
     const [loggedIn, setLoggedIn] = React.useState(false);
-
+    const [userEmail, setUserEmail] = React.useState(null)
+    const [currentUser, setCurrentUser] = React.useState(null) // <-- 
     const [cards, setCards] = React.useState([])
 
+    const navigate = useNavigate();
 
     React.useEffect(() => {
         Promise.all([api.getUserInfo(), api.getInitialCards()])
@@ -40,6 +41,24 @@ function App() {
             .catch(console.error);
 
     }, [])
+
+    React.useEffect(() => {
+        handleTokenCheck();
+    }, [])
+
+    const handleTokenCheck = () => {
+        if (localStorage.getItem('jwt')) {
+            const jwt = localStorage.getItem('jwt');
+            auth.checkToken(jwt)
+                .then((res) => {
+                    if (res) {
+                        setUserEmail(res.data)
+                        setLoggedIn(true);
+                        navigate("/main", { replace: true })
+                    }
+                });
+        }
+    }
 
 
     const handleEditAvatarClick = () => {
@@ -56,11 +75,13 @@ function App() {
     }
 
 
+
     const closeAllPopups = () => {
         setEditProfilePopupOpen(false);
         setAddPlacePopupOpen(false);
         setEditAvatarPopupOpen(false);
         setSelectedCard(null);
+        setInfoTooltipOpen(false)
     };
 
     const handleCardClick = (card) => {
@@ -128,29 +149,36 @@ function App() {
     }
 
 
+    const handleLogin = () => {
+        setLoggedIn(true);
+    }
+
 
 
 
     return (
-        <AppContext.Provider value={loggedIn}>
+        <>
             <CurrentUserContext.Provider value={currentUser}>
-                <div className='page'>
-                    <Header />
-                    <Routes>
-                        <Route path="/" element={loggedIn ? <Navigate to="/sign-up" replace /> : <Navigate to="/sign-in" replace />} />
-                        <Route path='/main' element={<ProtectedRouteElement element={Main} onEditProfile={handleEditProfileClick} onAddPlace={handleAddPlaceClick} onEditAvatar={handleEditAvatarClick} onCardClick={handleCardClick} cards={cards} onCardLike={handleCardLike} onCardDelete={handleCardDelete} />} />
-                        <Footer />
-                        <Route path='/sign-in' element={<Login />} />
-                        <Route path='/sign-up' element={<Register />} />
-                    </Routes>
-                    <EditProfilePopup isOpen={isEditProfilePopupOpen} onClose={closeAllPopups} onUpdateUser={handleUpdateUser} />
-                    <EditAvatarPopup isOpen={isEditAvatarPopupOpen} onClose={closeAllPopups} onUpdateAvatar={handleUpdateAvatar} />
-                    <AddPlacePopup isOpen={isAddPlacePopupOpen} onClose={closeAllPopups} onUpdateAddCard={handleAddPlaceSubmit} />
-                    <PopupWithForm name="delete" nameId="delete" formId="deleteForm" title="Вы уверены?" submitButtonLabel="Да" ></PopupWithForm>
-                    <ImagePopup card={selectedCard} onClose={closeAllPopups} />
-                </div>
+                <LoggedInContext.Provider value={loggedIn}>
+                    <AppContext.Provider value={userEmail}>
+                        <div className='page'>
+                            <Routes>
+                                <Route path='/' element={loggedIn ? <Navigate to="/main" replace /> : <Navigate to="/sign-in" replace />} />
+                                <Route path='/main' element={<ProtectedRouteElement element={Main} onEditProfile={handleEditProfileClick} onAddPlace={handleAddPlaceClick} onEditAvatar={handleEditAvatarClick} onCardClick={handleCardClick} cards={cards} onCardLike={handleCardLike} onCardDelete={handleCardDelete} />} />
+                                <Route path='/sign-in' element={<Login setUserEmail={setUserEmail} handleLogin={handleLogin} setRegInfo={setRegInfo} setInfoTooltipOpen={setInfoTooltipOpen} />} />
+                                <Route path='/sign-up' element={<Register setRegInfo={setRegInfo} setInfoTooltipOpen={setInfoTooltipOpen} />} />
+                            </Routes>
+                            <EditProfilePopup isOpen={isEditProfilePopupOpen} onClose={closeAllPopups} onUpdateUser={handleUpdateUser} />
+                            <EditAvatarPopup isOpen={isEditAvatarPopupOpen} onClose={closeAllPopups} onUpdateAvatar={handleUpdateAvatar} />
+                            <AddPlacePopup isOpen={isAddPlacePopupOpen} onClose={closeAllPopups} onUpdateAddCard={handleAddPlaceSubmit} />
+                            <PopupWithForm name="delete" nameId="delete" formId="deleteForm" title="Вы уверены?" submitButtonLabel="Да" ></PopupWithForm>
+                            <ImagePopup card={selectedCard} onClose={closeAllPopups} />
+                            <InfoTooltip isOpen={isInfoTooltipOpen} onClose={closeAllPopups} success={regInfo.success} />
+                        </div>
+                    </AppContext.Provider>
+                </LoggedInContext.Provider>
             </CurrentUserContext.Provider>
-        </AppContext.Provider>
+        </>
 
     );
 }
