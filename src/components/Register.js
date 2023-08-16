@@ -25,7 +25,7 @@ const Register = ({ setRegInfo, setInfoTooltipOpen }) => {
         e.preventDefault();
         auth.register(formValue.email, formValue.password)
             .then((data) => {
-                if(data) {
+                if (data) {
                     setRegInfo({ success: true })
                     setInfoTooltipOpen(true)
                     setFormValue({ email: '', password: '' })
@@ -40,7 +40,7 @@ const Register = ({ setRegInfo, setInfoTooltipOpen }) => {
     }
 
     return (
-        <>
+        <div className='content'>
             <div className="header">
                 <img className="header__logo" src={HeaderLog} alt="Места в России" />
                 <div className='header__login-container'>
@@ -60,7 +60,7 @@ const Register = ({ setRegInfo, setInfoTooltipOpen }) => {
             <div className="message">
                 <p className='message__text'>Уже зарегистрированы? <Link to="/sign-in" className="message__redirect">Войти</Link></p>
             </div>
-        </>
+        </div>
     )
 }
 

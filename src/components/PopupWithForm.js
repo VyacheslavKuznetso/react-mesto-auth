@@ -9,7 +9,7 @@ function PopupWithForm(props) {
           <form className="popup__form" id={props.nameId} name={`${props.formId}`} onSubmit={props.handleSubmit} >
             <h2 className="popup__form-title">{props.title}</h2>
             {props.children}
-            <button className="popup__form-submit-button" type="submit">{props.submitButtonLabel}</button>
+            <button className="popup__form-submit-button popup__form-submit-button_visible" type="submit" disabled >{props.submitButtonLabel}</button>
           </form>
         </div>
       </div>
