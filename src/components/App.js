@@ -56,7 +56,8 @@ function App() {
                         setLoggedIn(true);
                         navigate("/main", { replace: true })
                     }
-                });
+                })
+                .catch(console.error);
         }
     }
 
